@@ -22,10 +22,17 @@ func (cfg *apiConfig) middlewareMetricsInc(next http.Handler) http.Handler {
 
 // returns current hits
 func (cfg *apiConfig) handlerRequestCount(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "text/plain; charset=utf-8")
+	w.Header().Add("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	currHits := cfg.fileserverHits.Load()
-	formattedRes := fmt.Sprintf("Hits: %v\n", currHits)
+	formattedRes := fmt.Sprintf(`
+<html>
+	<body>
+		<h1>Welcome, Chirpy Admin</h1>
+		<p>Chirpy has been visited %d times!</p>
+	</body>
+</html>
+`, currHits)
 	w.Write([]byte(formattedRes))
 }
 
@@ -57,9 +64,9 @@ func main() {
 		"/app",
 		serveHitsCount.middlewareMetricsInc(http.FileServer(http.Dir(filePathRoot))),
 	))
-	mux.HandleFunc("/healthz", handlerReadiness)
-	mux.HandleFunc("/metrics", serveHitsCount.handlerRequestCount)
-	mux.HandleFunc("/reset", serveHitsCount.handlerReset)
+	mux.HandleFunc("GET /api/healthz", handlerReadiness)
+	mux.HandleFunc("GET /admin/metrics", serveHitsCount.handlerRequestCount)
+	mux.HandleFunc("POST /admin/reset", serveHitsCount.handlerReset)
 
 	// server struct
 	serv := &http.Server{
