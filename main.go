@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -49,6 +50,75 @@ func handlerReadiness(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(http.StatusText(http.StatusOK)))
 }
 
+func handlerPostChirp(w http.ResponseWriter, r *http.Request) {
+	// struct to receive a json
+	type chirpData struct {
+		Body string `json:"body"`
+	}
+
+	// struct to send a error json
+	type errorData struct {
+		Error string `json:"error"`
+	}
+
+	// struct to send a valid: bool json
+	type validMsg struct {
+		Valid bool `json:"valid"`
+	}
+
+	// decode json
+	decoder := json.NewDecoder(r.Body)
+	chirp := chirpData{}
+	err := decoder.Decode(&chirp)
+	w.Header().Set("Content-Type", "application/json")
+	if err != nil {
+		log.Printf("Error decoding chirpData: %s", err)
+
+		// send an error json in body
+		errorResp := errorData{
+			Error: "Something went wrong",
+		}
+		dat, err := json.Marshal(errorResp)
+		if err != nil {
+			log.Printf("Error marshalling error json: %s", err)
+			w.WriteHeader(500)
+			return
+		}
+		w.WriteHeader(500)
+		w.Write(dat)
+		return
+	}
+
+	// if the chirpData is longer than 140 characters
+	if len(chirp.Body) > 140 {
+		errorResp := errorData{
+			Error: "Chirp is too long",
+		}
+		dat, err := json.Marshal(errorResp)
+		if err != nil {
+			log.Printf("Error marshalling error json: %s", err)
+			w.WriteHeader(500)
+			return
+		}
+		w.WriteHeader(400)
+		w.Write(dat)
+		return
+	}
+
+	// send valid msg in body
+	successResp := validMsg{
+		Valid: true,
+	}
+	dat, err := json.Marshal(successResp)
+	if err != nil {
+		log.Printf("Error marshalling error json: %s", err)
+		w.WriteHeader(500)
+		return
+	}
+	w.WriteHeader(200)
+	w.Write(dat)
+}
+
 func main() {
 	// port config
 	const filePathRoot = "."
@@ -67,6 +137,7 @@ func main() {
 	mux.HandleFunc("GET /api/healthz", handlerReadiness)
 	mux.HandleFunc("GET /admin/metrics", serveHitsCount.handlerRequestCount)
 	mux.HandleFunc("POST /admin/reset", serveHitsCount.handlerReset)
+	mux.HandleFunc("POST /api/validate_chirp", handlerPostChirp)
 
 	// server struct
 	serv := &http.Server{
