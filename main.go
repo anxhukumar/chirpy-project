@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"sync/atomic"
 )
 
@@ -61,9 +62,9 @@ func handlerPostChirp(w http.ResponseWriter, r *http.Request) {
 		Error string `json:"error"`
 	}
 
-	// struct to send a valid: bool json
-	type validMsg struct {
-		Valid bool `json:"valid"`
+	// struct to send a cleaned chirp json
+	type cleanedMsg struct {
+		CleanedBody string `json:"cleaned_body"`
 	}
 
 	// decode json
@@ -105,18 +106,40 @@ func handlerPostChirp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// send valid msg in body
-	successResp := validMsg{
-		Valid: true,
+	// send cleaned msg in body
+
+	// update original chirp data
+	chirp.Body = removeProfaneWords(chirp.Body)
+
+	res := cleanedMsg{
+		CleanedBody: chirp.Body,
 	}
-	dat, err := json.Marshal(successResp)
+
+	dat, err := json.Marshal(res)
 	if err != nil {
-		log.Printf("Error marshalling error json: %s", err)
+		log.Printf("Error marshalling chirp json: %s", err)
 		w.WriteHeader(500)
 		return
 	}
 	w.WriteHeader(200)
 	w.Write(dat)
+}
+
+// helper functions
+func removeProfaneWords(msg string) string {
+	// split the words
+	splitOriginalMsg := strings.Split(msg, " ")
+
+	// lower case split
+	splitLowercasedMsg := strings.Split(strings.ToLower(msg), " ")
+
+	for i, v := range splitLowercasedMsg {
+		if v == "kerfuffle" || v == "sharbert" || v == "fornax" {
+			splitOriginalMsg[i] = "****"
+		}
+	}
+
+	return strings.Join(splitOriginalMsg, " ")
 }
 
 func main() {
