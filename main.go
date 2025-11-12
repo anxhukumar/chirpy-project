@@ -133,8 +133,16 @@ func removeProfaneWords(msg string) string {
 	// lower case split
 	splitLowercasedMsg := strings.Split(strings.ToLower(msg), " ")
 
+	// bad words map
+	badWords := map[string]bool{
+		"kerfuffle": true,
+		"sharbert":  true,
+		"fornax":    true,
+	}
+
+	// iterate and replace the bad words if they exist
 	for i, v := range splitLowercasedMsg {
-		if v == "kerfuffle" || v == "sharbert" || v == "fornax" {
+		if badWords[v] {
 			splitOriginalMsg[i] = "****"
 		}
 	}
