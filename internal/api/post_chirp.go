@@ -4,33 +4,9 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"strings"
+
+	"github.com/anxhukumar/chirpy-project/internal/helper"
 )
-
-// helper functions
-func RemoveProfaneWords(msg string) string {
-	// split the words
-	splitOriginalMsg := strings.Split(msg, " ")
-
-	// lower case split
-	splitLowercasedMsg := strings.Split(strings.ToLower(msg), " ")
-
-	// bad words map
-	badWords := map[string]bool{
-		"kerfuffle": true,
-		"sharbert":  true,
-		"fornax":    true,
-	}
-
-	// iterate and replace the bad words if they exist
-	for i, v := range splitLowercasedMsg {
-		if badWords[v] {
-			splitOriginalMsg[i] = "****"
-		}
-	}
-
-	return strings.Join(splitOriginalMsg, " ")
-}
 
 func HandlerPostChirp(w http.ResponseWriter, r *http.Request) {
 	// struct to receive a json
@@ -91,7 +67,7 @@ func HandlerPostChirp(w http.ResponseWriter, r *http.Request) {
 	// send cleaned msg in body
 
 	// update original chirp data
-	chirp.Body = RemoveProfaneWords(chirp.Body)
+	chirp.Body = helper.RemoveProfaneWords(chirp.Body)
 
 	res := cleanedMsg{
 		CleanedBody: chirp.Body,
@@ -103,6 +79,5 @@ func HandlerPostChirp(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(500)
 		return
 	}
-	w.WriteHeader(200)
-	w.Write(dat)
+
 }

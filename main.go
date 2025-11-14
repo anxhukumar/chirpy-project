@@ -58,6 +58,7 @@ func main() {
 	mux.HandleFunc("POST /admin/reset", apiConf.HandlerReset)
 	mux.HandleFunc("POST /api/validate_chirp", api.HandlerPostChirp)
 	mux.HandleFunc("POST /api/users", apiConf.HandlerCreateUser)
+	mux.HandleFunc("POST /api/chirps", apiConf.HandlerCreateChirp)
 
 	// server struct
 	serv := &http.Server{
