@@ -4,11 +4,14 @@ import (
 	"fmt"
 	"net/http"
 	"sync/atomic"
+
+	"github.com/anxhukumar/chirpy-project/internal/database"
 )
 
 // serverHits config
 type apiConfig struct {
 	fileserverHits atomic.Int32
+	db             *database.Queries
 }
 
 // resets the server hits
