@@ -14,12 +14,6 @@ type ApiConfig struct {
 	Db             *database.Queries
 }
 
-// resets the server hits
-func (cfg *ApiConfig) HandlerReset(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	cfg.FileserverHits.Store(0)
-}
-
 // returns current hits
 func (cfg *ApiConfig) HandlerRequestCount(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "text/html; charset=utf-8")

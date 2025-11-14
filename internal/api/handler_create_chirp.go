@@ -1,7 +1,6 @@
 package api
 
 import (
-	"context"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -41,7 +40,7 @@ func (cfg *ApiConfig) HandlerCreateChirp(w http.ResponseWriter, r *http.Request)
 	validChirp := helper.ValidateChirp(chirpData.Body, w)
 
 	// create user in database
-	createdData, err := cfg.Db.CreateChirp(context.Background(),
+	createdData, err := cfg.Db.CreateChirp(r.Context(),
 		database.CreateChirpParams{Body: validChirp, UserID: chirpData.UserID})
 	if err != nil {
 		log.Printf("Couldn't create chirp: %s", err)

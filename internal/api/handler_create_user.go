@@ -1,7 +1,6 @@
 package api
 
 import (
-	"context"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -34,7 +33,7 @@ func (cfg *ApiConfig) HandlerCreateUser(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// create user in database
-	createdData, err := cfg.Db.CreateUser(context.Background(), helper.ToNullString(email.Email))
+	createdData, err := cfg.Db.CreateUser(r.Context(), helper.ToNullString(email.Email))
 	if err != nil {
 		log.Printf("Couldn't create user: %s", err)
 		w.WriteHeader(500)
@@ -54,6 +53,7 @@ func (cfg *ApiConfig) HandlerCreateUser(w http.ResponseWriter, r *http.Request) 
 		w.WriteHeader(500)
 		return
 	}
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(201)
 	w.Write(res)
 
