@@ -6,6 +6,7 @@ import (
 )
 
 // middlewares
+
 // method of serverHits config
 func (cfg *apiConfig) middlewareMetricsInc(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
