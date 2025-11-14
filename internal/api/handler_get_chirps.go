@@ -53,3 +53,43 @@ func (cfg *ApiConfig) HandlerGetAllChirps(w http.ResponseWriter, r *http.Request
 	w.WriteHeader(200)
 	w.Write(res)
 }
+
+func (cfg *ApiConfig) HandlerGetOneChirp(w http.ResponseWriter, r *http.Request) {
+	// get id from url path
+	idStr := r.PathValue("chirpID")
+
+	// convert string id to uuid
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		log.Printf("Error converting ID string parameter to UUID: %s", err)
+		w.WriteHeader(500)
+		return
+	}
+
+	// get chirp
+	chirp, err := cfg.Db.GetOneChirp(r.Context(), id)
+	if err != nil {
+		log.Printf("Error while getting one chirp: %s", err)
+		w.WriteHeader(404)
+		return
+	}
+
+	chirpData := Chirp{
+		ID:        chirp.ID,
+		CreatedAt: chirp.CreatedAt,
+		UpdatedAt: chirp.UpdatedAt,
+		Body:      chirp.Body,
+		UserID:    chirp.UserID,
+	}
+
+	// convert the struct to json
+	res, err := json.Marshal(chirpData)
+	if err != nil {
+		log.Printf("Error converting chirp to json: %s", err)
+		w.WriteHeader(500)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	w.Write(res)
+}
