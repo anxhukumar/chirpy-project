@@ -1,4 +1,4 @@
-package main
+package api
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 )
 
 // helper functions
-func removeProfaneWords(msg string) string {
+func RemoveProfaneWords(msg string) string {
 	// split the words
 	splitOriginalMsg := strings.Split(msg, " ")
 
@@ -32,7 +32,7 @@ func removeProfaneWords(msg string) string {
 	return strings.Join(splitOriginalMsg, " ")
 }
 
-func handlerPostChirp(w http.ResponseWriter, r *http.Request) {
+func HandlerPostChirp(w http.ResponseWriter, r *http.Request) {
 	// struct to receive a json
 	type chirpData struct {
 		Body string `json:"body"`
@@ -52,6 +52,7 @@ func handlerPostChirp(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	chirp := chirpData{}
 	err := decoder.Decode(&chirp)
+
 	w.Header().Set("Content-Type", "application/json")
 	if err != nil {
 		log.Printf("Error decoding chirpData: %s", err)
@@ -90,7 +91,7 @@ func handlerPostChirp(w http.ResponseWriter, r *http.Request) {
 	// send cleaned msg in body
 
 	// update original chirp data
-	chirp.Body = removeProfaneWords(chirp.Body)
+	chirp.Body = RemoveProfaneWords(chirp.Body)
 
 	res := cleanedMsg{
 		CleanedBody: chirp.Body,

@@ -7,17 +7,16 @@ import (
 	"os"
 	"sync/atomic"
 
+	"github.com/anxhukumar/chirpy-project/internal/api"
 	"github.com/anxhukumar/chirpy-project/internal/database"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
 // middlewares
-
-// method of serverHits config
-func (cfg *apiConfig) middlewareMetricsInc(next http.Handler) http.Handler {
+func MiddlewareMetricsInc(cfg *api.ApiConfig, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		cfg.fileserverHits.Add(1)
+		cfg.FileserverHits.Add(1)
 		next.ServeHTTP(w, r)
 	})
 }
@@ -44,20 +43,21 @@ func main() {
 	mux := http.NewServeMux()
 
 	// apiconfig
-	apiConfig := apiConfig{
-		fileserverHits: atomic.Int32{},
-		db:             dbQueries,
+	apiConf := api.ApiConfig{
+		FileserverHits: atomic.Int32{},
+		Db:             dbQueries,
 	}
 
-	// add routing
+	// ***add routing***
 	mux.Handle("/app/", http.StripPrefix(
 		"/app",
-		apiConfig.middlewareMetricsInc(http.FileServer(http.Dir(filePathRoot))),
+		MiddlewareMetricsInc(&apiConf, http.FileServer(http.Dir(filePathRoot))),
 	))
-	mux.HandleFunc("GET /api/healthz", handlerReadiness)
-	mux.HandleFunc("GET /admin/metrics", apiConfig.handlerRequestCount)
-	mux.HandleFunc("POST /admin/reset", apiConfig.handlerReset)
-	mux.HandleFunc("POST /api/validate_chirp", handlerPostChirp)
+	mux.HandleFunc("GET /api/healthz", api.HandlerReadiness)
+	mux.HandleFunc("GET /admin/metrics", apiConf.HandlerRequestCount)
+	mux.HandleFunc("POST /admin/reset", apiConf.HandlerReset)
+	mux.HandleFunc("POST /api/validate_chirp", api.HandlerPostChirp)
+	mux.HandleFunc("POST /api/users", apiConf.HandlerCreateUser)
 
 	// server struct
 	serv := &http.Server{

@@ -1,4 +1,4 @@
-package main
+package api
 
 import (
 	"fmt"
@@ -9,22 +9,22 @@ import (
 )
 
 // serverHits config
-type apiConfig struct {
-	fileserverHits atomic.Int32
-	db             *database.Queries
+type ApiConfig struct {
+	FileserverHits atomic.Int32
+	Db             *database.Queries
 }
 
 // resets the server hits
-func (cfg *apiConfig) handlerReset(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiConfig) HandlerReset(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
-	cfg.fileserverHits.Store(0)
+	cfg.FileserverHits.Store(0)
 }
 
 // returns current hits
-func (cfg *apiConfig) handlerRequestCount(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiConfig) HandlerRequestCount(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	currHits := cfg.fileserverHits.Load()
+	currHits := cfg.FileserverHits.Load()
 	formattedRes := fmt.Sprintf(`
 <html>
 	<body>
