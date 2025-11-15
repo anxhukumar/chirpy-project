@@ -26,7 +26,12 @@ func main() {
 	godotenv.Load()
 	dbURL := os.Getenv("DB_URL")
 	if dbURL == "" {
-		log.Fatal("DB_URL must be set")
+		log.Fatal("DB_URL must be set in .env")
+	}
+
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		log.Fatal("JWT_SECRET must be set in .env")
 	}
 
 	// connect sql db
@@ -46,6 +51,7 @@ func main() {
 	apiConf := api.ApiConfig{
 		FileserverHits: atomic.Int32{},
 		Db:             dbQueries,
+		JwtSecret:      jwtSecret,
 	}
 
 	// ***add routing***

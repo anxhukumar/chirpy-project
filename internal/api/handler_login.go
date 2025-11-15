@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/anxhukumar/chirpy-project/internal/auth"
 	"github.com/anxhukumar/chirpy-project/internal/helper"
@@ -34,12 +35,23 @@ func (cfg *ApiConfig) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// get jwt token
+	if loginData.ExpiresInSeconds == 0 || loginData.ExpiresInSeconds > 3600 {
+		loginData.ExpiresInSeconds = 3600
+	}
+	jwtToken, err := auth.MakeJWT(userData.ID, cfg.JwtSecret, time.Duration(loginData.ExpiresInSeconds)*time.Second)
+	if err != nil {
+		w.WriteHeader(500)
+		return
+	}
+
 	// return user data since the password has matched
 	userRes := User{
 		ID:        userData.ID,
 		CreatedAt: userData.CreatedAt,
 		UpdatedAt: userData.UpdatedAt,
 		Email:     userData.Email.String,
+		Token:     jwtToken,
 	}
 	res, err := json.Marshal(userRes)
 	if err != nil {

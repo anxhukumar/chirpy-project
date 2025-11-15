@@ -7,8 +7,9 @@ import (
 )
 
 type UserAuthData struct {
-	Password string `json:"password"`
-	Email    string `json:"email"`
+	Password         string `json:"password"`
+	Email            string `json:"email"`
+	ExpiresInSeconds int    `json:"expires_in_seconds"`
 }
 
 func DecodeAuthJson(w http.ResponseWriter, r *http.Request) UserAuthData {
