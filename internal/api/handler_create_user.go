@@ -12,11 +12,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type UserAuthData struct {
-	Password string `json:"password"`
-	Email    string `json:"email"`
-}
-
 type User struct {
 	ID        uuid.UUID `json:"id"`
 	CreatedAt time.Time `json:"created_at"`
@@ -25,15 +20,8 @@ type User struct {
 }
 
 func (cfg *ApiConfig) HandlerCreateUser(w http.ResponseWriter, r *http.Request) {
-	// decode email json
-	decoder := json.NewDecoder(r.Body)
-	userData := UserAuthData{}
-	err := decoder.Decode(&userData)
-	if err != nil {
-		log.Printf("Error decoding emailData: %s", err)
-		w.WriteHeader(500)
-		return
-	}
+	// decode user auth json
+	userData := helper.DecodeAuthJson(w, r)
 
 	// create user in database
 
