@@ -6,12 +6,15 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/anxhukumar/chirpy-project/internal/auth"
+	"github.com/anxhukumar/chirpy-project/internal/database"
 	"github.com/anxhukumar/chirpy-project/internal/helper"
 	"github.com/google/uuid"
 )
 
-type Email struct {
-	Email string `json:"email"`
+type UserAuthData struct {
+	Password string `json:"password"`
+	Email    string `json:"email"`
 }
 
 type User struct {
@@ -24,8 +27,8 @@ type User struct {
 func (cfg *ApiConfig) HandlerCreateUser(w http.ResponseWriter, r *http.Request) {
 	// decode email json
 	decoder := json.NewDecoder(r.Body)
-	email := Email{}
-	err := decoder.Decode(&email)
+	userData := UserAuthData{}
+	err := decoder.Decode(&userData)
 	if err != nil {
 		log.Printf("Error decoding emailData: %s", err)
 		w.WriteHeader(500)
@@ -33,7 +36,19 @@ func (cfg *ApiConfig) HandlerCreateUser(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// create user in database
-	createdData, err := cfg.Db.CreateUser(r.Context(), helper.ToNullString(email.Email))
+
+	// hash the password
+	hashedPassword, err := auth.HashPassword(userData.Password)
+	if err != nil {
+		w.WriteHeader(500)
+		return
+	}
+
+	userAuthData := database.CreateUserParams{
+		Email:          helper.ToNullString(userData.Email),
+		HashedPassword: hashedPassword,
+	}
+	createdData, err := cfg.Db.CreateUser(r.Context(), userAuthData)
 	if err != nil {
 		log.Printf("Couldn't create user: %s", err)
 		w.WriteHeader(500)
@@ -41,13 +56,13 @@ func (cfg *ApiConfig) HandlerCreateUser(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// decode output
-	userData := User{
+	userRes := User{
 		ID:        createdData.ID,
 		CreatedAt: createdData.CreatedAt,
 		UpdatedAt: createdData.UpdatedAt,
 		Email:     createdData.Email.String,
 	}
-	res, err := json.Marshal(userData)
+	res, err := json.Marshal(userRes)
 	if err != nil {
 		log.Printf("Error marshalling user data: %s", err)
 		w.WriteHeader(500)
