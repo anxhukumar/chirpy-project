@@ -6,22 +6,23 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/anxhukumar/chirpy-project/internal/auth"
 	"github.com/anxhukumar/chirpy-project/internal/database"
 	"github.com/anxhukumar/chirpy-project/internal/helper"
 	"github.com/google/uuid"
 )
 
 type ChirpData struct {
-	Body   string        `json:"body"`
-	UserID uuid.NullUUID `json:"user_id"`
+	Body   string    `json:"body"`
+	UserID uuid.UUID `json:"user_id"`
 }
 
 type ChirpFullData struct {
-	ID        uuid.UUID     `json:"id"`
-	CreatedAt time.Time     `json:"created_at"`
-	UpdatedAt time.Time     `json:"updated_at"`
-	Body      string        `json:"body"`
-	UserID    uuid.NullUUID `json:"user_id"`
+	ID        uuid.UUID `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	Body      string    `json:"body"`
+	UserID    uuid.UUID `json:"user_id"`
 }
 
 func (cfg *ApiConfig) HandlerCreateChirp(w http.ResponseWriter, r *http.Request) {
@@ -35,13 +36,26 @@ func (cfg *ApiConfig) HandlerCreateChirp(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	// verify jwt token before creating chirp
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	tokenUserId, err := auth.ValidateJWT(token, cfg.JwtSecret)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	// get validated chirp
 	// return invalid code to user from ValidateChirp function if the body is invalid
 	validChirp := helper.ValidateChirp(chirpData.Body, w)
 
 	// create user in database
 	createdData, err := cfg.Db.CreateChirp(r.Context(),
-		database.CreateChirpParams{Body: validChirp, UserID: chirpData.UserID})
+		database.CreateChirpParams{Body: validChirp, UserID: tokenUserId})
 	if err != nil {
 		log.Printf("Couldn't create chirp: %s", err)
 		w.WriteHeader(500)
@@ -54,7 +68,7 @@ func (cfg *ApiConfig) HandlerCreateChirp(w http.ResponseWriter, r *http.Request)
 		CreatedAt: createdData.CreatedAt,
 		UpdatedAt: createdData.UpdatedAt,
 		Body:      createdData.Body,
-		UserID:    createdData.UserID,
+		UserID:    tokenUserId,
 	}
 	res, err := json.Marshal(ChirpFullData)
 	if err != nil {
