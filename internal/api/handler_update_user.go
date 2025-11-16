@@ -50,11 +50,12 @@ func (cfg *ApiConfig) HandlerUpdateUser(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// decode output
-	userRes := User{
-		ID:        createdData.ID,
-		CreatedAt: createdData.CreatedAt,
-		UpdatedAt: createdData.UpdatedAt,
-		Email:     createdData.Email,
+	userRes := struct {
+		Id    string `json:"id"`
+		Email string `json:"email"`
+	}{
+		Id:    createdData.Email,
+		Email: createdData.Email,
 	}
 	res, err := json.Marshal(userRes)
 	if err != nil {
@@ -64,5 +65,6 @@ func (cfg *ApiConfig) HandlerUpdateUser(w http.ResponseWriter, r *http.Request) 
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+	log.Printf(string(res))
 	w.Write(res)
 }
