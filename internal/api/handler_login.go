@@ -16,7 +16,7 @@ func (cfg *ApiConfig) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 	loginData := helper.DecodeAuthJson(w, r)
 
 	// check and get if user exists
-	userData, err := cfg.Db.GetUserByEmail(r.Context(), helper.ToNullString(loginData.Email))
+	userData, err := cfg.Db.GetUserByEmail(r.Context(), loginData.Email)
 	if err != nil {
 		log.Printf("Incorrect email or password: %s", err)
 		w.WriteHeader(401)
@@ -67,7 +67,7 @@ func (cfg *ApiConfig) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 		ID:           userData.ID,
 		CreatedAt:    userData.CreatedAt,
 		UpdatedAt:    userData.UpdatedAt,
-		Email:        userData.Email.String,
+		Email:        userData.Email,
 		Token:        jwtToken,
 		RefreshToken: refreshToken.Token,
 	}

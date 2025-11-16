@@ -35,7 +35,7 @@ func (cfg *ApiConfig) HandlerCreateUser(w http.ResponseWriter, r *http.Request) 
 	}
 
 	userAuthData := database.CreateUserParams{
-		Email:          helper.ToNullString(userData.Email),
+		Email:          userData.Email,
 		HashedPassword: hashedPassword,
 	}
 	createdData, err := cfg.Db.CreateUser(r.Context(), userAuthData)
@@ -50,7 +50,7 @@ func (cfg *ApiConfig) HandlerCreateUser(w http.ResponseWriter, r *http.Request) 
 		ID:        createdData.ID,
 		CreatedAt: createdData.CreatedAt,
 		UpdatedAt: createdData.UpdatedAt,
-		Email:     createdData.Email.String,
+		Email:     createdData.Email,
 	}
 	res, err := json.Marshal(userRes)
 	if err != nil {
