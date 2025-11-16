@@ -37,8 +37,7 @@ func (cfg *ApiConfig) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// get jwt token
-	JWT_TOKEN_EXPIRY_DURATION_IN_SECONDS := 3600
-	jwtToken, err := auth.MakeJWT(userData.ID, cfg.JwtSecret, time.Duration(JWT_TOKEN_EXPIRY_DURATION_IN_SECONDS)*time.Second)
+	jwtToken, err := helper.GetJwtToken(userData, cfg.JwtSecret)
 	if err != nil {
 		w.WriteHeader(500)
 		return
