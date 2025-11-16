@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/anxhukumar/chirpy-project/internal/auth"
+	"github.com/anxhukumar/chirpy-project/internal/database"
 	"github.com/anxhukumar/chirpy-project/internal/helper"
 )
 
@@ -36,22 +37,40 @@ func (cfg *ApiConfig) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// get jwt token
-	if loginData.ExpiresInSeconds == 0 || loginData.ExpiresInSeconds > 3600 {
-		loginData.ExpiresInSeconds = 3600
-	}
-	jwtToken, err := auth.MakeJWT(userData.ID, cfg.JwtSecret, time.Duration(loginData.ExpiresInSeconds)*time.Second)
+	JWT_TOKEN_EXPIRY_DURATION_IN_SECONDS := 3600
+	jwtToken, err := auth.MakeJWT(userData.ID, cfg.JwtSecret, time.Duration(JWT_TOKEN_EXPIRY_DURATION_IN_SECONDS)*time.Second)
 	if err != nil {
 		w.WriteHeader(500)
 		return
 	}
 
+	// get refresh token
+	refreshTokenCode, err := auth.MakeRefreshToken()
+	if err != nil {
+		w.WriteHeader(500)
+		return
+	}
+	// send the refresh token to database
+	REFRESH_TOKEN_EXPIRY_DURATION_IN_DAYS := 60
+	refreshTokenParams := database.CreateRefreshTokenParams{
+		Token:     refreshTokenCode,
+		UserID:    userData.ID,
+		ExpiresAt: time.Now().Add(time.Duration(REFRESH_TOKEN_EXPIRY_DURATION_IN_DAYS*24) * time.Hour),
+	}
+	refreshToken, err := cfg.Db.CreateRefreshToken(r.Context(), refreshTokenParams)
+	if err != nil {
+		log.Printf("Error while inserting refreshToken in database: %s", err)
+		return
+	}
+
 	// return user data since the password has matched
 	userRes := User{
-		ID:        userData.ID,
-		CreatedAt: userData.CreatedAt,
-		UpdatedAt: userData.UpdatedAt,
-		Email:     userData.Email.String,
-		Token:     jwtToken,
+		ID:           userData.ID,
+		CreatedAt:    userData.CreatedAt,
+		UpdatedAt:    userData.UpdatedAt,
+		Email:        userData.Email.String,
+		Token:        jwtToken,
+		RefreshToken: refreshToken.Token,
 	}
 	res, err := json.Marshal(userRes)
 	if err != nil {
