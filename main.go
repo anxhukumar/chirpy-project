@@ -70,6 +70,7 @@ func main() {
 	mux.HandleFunc("POST /api/refresh", apiConf.HandlerRefreshToken)
 	mux.HandleFunc("POST /api/revoke", apiConf.HandlerRevokeToken)
 	mux.HandleFunc("PUT /api/users", apiConf.HandlerUpdateUser)
+	mux.HandleFunc("DELETE /api/chirps/{chirpID}", apiConf.HandlerDeleteChirp)
 
 	// server struct
 	serv := &http.Server{

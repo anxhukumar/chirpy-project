@@ -12,19 +12,8 @@ import (
 
 func (cfg *ApiConfig) HandlerUpdateUser(w http.ResponseWriter, r *http.Request) {
 
-	// fetch access token
-	accessToken, err := auth.GetBearerToken(r.Header)
-	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
-	// validate received token
-	verifiedUserID, err := auth.ValidateJWT(accessToken, cfg.JwtSecret)
-	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
+	// fetch userId after validating JWT
+	verifiedUserID := helper.FetchJwtUserId(cfg.JwtSecret, w, r)
 
 	// fetch new changed user data
 	newUserData := helper.DecodeAuthJson(w, r)

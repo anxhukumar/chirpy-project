@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/anxhukumar/chirpy-project/internal/auth"
 	"github.com/anxhukumar/chirpy-project/internal/database"
 	"github.com/anxhukumar/chirpy-project/internal/helper"
 	"github.com/google/uuid"
@@ -36,18 +35,8 @@ func (cfg *ApiConfig) HandlerCreateChirp(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// verify jwt token before creating chirp
-	token, err := auth.GetBearerToken(r.Header)
-	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
-	tokenUserId, err := auth.ValidateJWT(token, cfg.JwtSecret)
-	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
+	// fetch userId after validating JWT
+	tokenUserId := helper.FetchJwtUserId(cfg.JwtSecret, w, r)
 
 	// get validated chirp
 	// return invalid code to user from ValidateChirp function if the body is invalid
