@@ -74,8 +74,12 @@ func (cfg *ApiConfig) HandlerGetAllChirps(w http.ResponseWriter, r *http.Request
 	}
 
 	// sort the chirps if asked by user
+	// we only need to sort for descending order because ascending is default from database
 	if sortParam == "desc" {
-		sort.Slice(newChirpSlice, func(i, j int) bool { return newChirpSlice[i].CreatedAt.After(newChirpSlice[j].CreatedAt) })
+		sort.Slice(
+			newChirpSlice,
+			func(i, j int) bool { return newChirpSlice[i].CreatedAt.After(newChirpSlice[j].CreatedAt) },
+		)
 	}
 
 	// convert the slice to json
