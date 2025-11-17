@@ -15,8 +15,8 @@ A RESTful API backend for a Twitter-like social media platform built with Go. Us
 
 - **Language**: Go
 - **Database**: PostgreSQL
-**Migrations**: Goose
-**Query Layer**: SQLC
+- **Migrations**: Goose
+- **Query Layer**: SQLC
 
 ## Prerequisites
 
