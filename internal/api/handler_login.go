@@ -70,6 +70,7 @@ func (cfg *ApiConfig) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 		Email:        userData.Email,
 		Token:        jwtToken,
 		RefreshToken: refreshToken.Token,
+		IsChirpyRed:  userData.IsChirpyRed.Bool,
 	}
 	res, err := json.Marshal(userRes)
 	if err != nil {

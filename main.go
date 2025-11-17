@@ -71,6 +71,7 @@ func main() {
 	mux.HandleFunc("POST /api/revoke", apiConf.HandlerRevokeToken)
 	mux.HandleFunc("PUT /api/users", apiConf.HandlerUpdateUser)
 	mux.HandleFunc("DELETE /api/chirps/{chirpID}", apiConf.HandlerDeleteChirp)
+	mux.HandleFunc("POST /api/polka/webhooks", apiConf.HandlerPolkaWebhook) //webhook
 
 	// server struct
 	serv := &http.Server{
