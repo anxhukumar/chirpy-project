@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"sort"
 	"time"
 
 	"github.com/anxhukumar/chirpy-project/internal/database"
@@ -22,6 +23,9 @@ func (cfg *ApiConfig) HandlerGetAllChirps(w http.ResponseWriter, r *http.Request
 
 	var chirps []database.Chirp
 	var err error
+
+	// check if the user wants to sort the chirps
+	sortParam := r.URL.Query().Get("sort")
 
 	// check if user want chirps from a particular author or all authors
 	// check for query parameter
@@ -67,6 +71,11 @@ func (cfg *ApiConfig) HandlerGetAllChirps(w http.ResponseWriter, r *http.Request
 		}
 
 		newChirpSlice = append(newChirpSlice, chirp)
+	}
+
+	// sort the chirps if asked by user
+	if sortParam == "desc" {
+		sort.Slice(newChirpSlice, func(i, j int) bool { return newChirpSlice[i].CreatedAt.After(newChirpSlice[j].CreatedAt) })
 	}
 
 	// convert the slice to json
