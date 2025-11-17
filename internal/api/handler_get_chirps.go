@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/anxhukumar/chirpy-project/internal/database"
 	"github.com/google/uuid"
 )
 
@@ -18,12 +19,38 @@ type Chirp struct {
 }
 
 func (cfg *ApiConfig) HandlerGetAllChirps(w http.ResponseWriter, r *http.Request) {
-	// get all chirps
-	chirps, err := cfg.Db.GetAllChirps(r.Context())
-	if err != nil {
-		log.Printf("Error while getting all chirps: %s", err)
-		w.WriteHeader(500)
-		return
+
+	var chirps []database.Chirp
+	var err error
+
+	// check if user want chirps from a particular author or all authors
+	// check for query parameter
+	author_id := r.URL.Query().Get("author_id")
+	if len(author_id) > 0 {
+		// convert author id string to uuid
+		userId, err := uuid.Parse(author_id)
+		if err != nil {
+			log.Printf("Error converting authorId string to UUID in <handler_get_chirps>: %s", err)
+			w.WriteHeader(500)
+			return
+		}
+
+		// get all chirps from that user
+		chirps, err = cfg.Db.GetAllChirpsFromUser(r.Context(), userId)
+		if err != nil {
+			log.Printf("Error while getting all chirps from a user: %s", err)
+			w.WriteHeader(500)
+			return
+		}
+	} else {
+		// get all chirps
+		chirps, err = cfg.Db.GetAllChirps(r.Context())
+		if err != nil {
+			log.Printf("Error while getting all chirps: %s", err)
+			w.WriteHeader(500)
+			return
+		}
+
 	}
 
 	// convert the slice of structs to slice of json responses
