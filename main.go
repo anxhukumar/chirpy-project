@@ -34,6 +34,11 @@ func main() {
 		log.Fatal("JWT_SECRET must be set in .env")
 	}
 
+	polkaApiKey := os.Getenv("POLKA_KEY")
+	if polkaApiKey == "" {
+		log.Fatal("POLKA_KEY must be set in .env")
+	}
+
 	// connect sql db
 	dbConn, err := sql.Open("postgres", dbURL)
 	if err != nil {
@@ -52,6 +57,7 @@ func main() {
 		FileserverHits: atomic.Int32{},
 		Db:             dbQueries,
 		JwtSecret:      jwtSecret,
+		PolkaApiKey:    polkaApiKey,
 	}
 
 	// ***add routing***

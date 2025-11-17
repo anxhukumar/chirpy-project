@@ -13,6 +13,7 @@ type ApiConfig struct {
 	FileserverHits atomic.Int32
 	Db             *database.Queries
 	JwtSecret      string
+	PolkaApiKey    string
 }
 
 // returns current hits

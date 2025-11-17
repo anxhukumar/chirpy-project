@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/anxhukumar/chirpy-project/internal/auth"
 	"github.com/google/uuid"
 )
 
@@ -16,10 +17,24 @@ type PolkaReq struct {
 }
 
 func (cfg *ApiConfig) HandlerPolkaWebhook(w http.ResponseWriter, r *http.Request) {
+
+	//verify if request is coming from correct source
+	receivedApiKey, err := auth.GetAPIKey(r.Header)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	if receivedApiKey != cfg.PolkaApiKey {
+		log.Printf("Polka webhook request made from unauthorized source")
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	// decode polka json data
 	decoder := json.NewDecoder(r.Body)
 	polkaData := PolkaReq{}
-	err := decoder.Decode(&polkaData)
+	err = decoder.Decode(&polkaData)
 	if err != nil {
 		log.Printf("Error decoding polka request: %s", err)
 		w.WriteHeader(500)
